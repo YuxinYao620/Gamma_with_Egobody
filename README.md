@@ -43,19 +43,15 @@ This repo contains the official implementation of our paper. If you find our wor
     * [vposer](https://github.com/nghorbani/human_body_prior): checkpoint version 1.0
 
 ### Datasets
-* [**AMASS**](https://amass.is.tue.mpg.de): We downloaded and used the `SMPL+H G` bodies. To get better performance (e.g. bodies without self-interpenetration), please use `SMPL-X G` bodies instead. Note that the data formats of `SMPL-X G` might be different.
-* [**Cubes**](https://drive.google.com/drive/folders/1apT4ap84vaMwomSYymbVEBIIG-yQO5Yw?usp=sharing): Our synthetic scene with cubes as blockers. 
-    * It includes the scene mesh, the navigation mesh, walking paths. 
-    * The blender file conrtains the python script to visualize motions.
-    * See [this use case](https://yz-cnsdqz.github.io/eigenmotion/GAMMA/) for more details. 
-    * When they are downloaded, put them into `exp_GAMMAPrimitive/data/Cubes/*`
+* [**EgoBody**](https://amass.is.tue.mpg.de): We trained the motion prior by using the body model of camera-wearer in EgoBody dataset, and tested the motion prior with the body model of the interactee in EgoBody. 
 
 ### Paths
 * To run the code properly it is important to set the paths of data, body model, and others. See `exp_GAMMAPrimitive/utils/config_env.py` for more details.
 
-### AMASS Canonicalization
+### Canonicalization
 * required for training and visualizing motion primitives.
-* `exp_GAMMAPrimitive/utils/utils_canonicalize_amass.py` extracts short sub-sequences from AMASS and performs canonicalization.
+* `exp_GAMMAPrimitive/optimize_latent_var.py` to performs canonicalization for test data: the interactee.
+* 
 * run `python exp_GAMMAPrimitive/utils/utils_canonicalize_amass.py [num_motion_primitives]`. 
 * `num_motion_primitives` is the number of primitives in each sub-sequence. We set to 1 and 10, respectively. So we prepare **two** processed datasets.
 
