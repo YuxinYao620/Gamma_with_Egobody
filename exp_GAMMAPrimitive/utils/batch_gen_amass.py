@@ -214,7 +214,7 @@ class BatchGeneratorAMASSCanonicalized(object):
         rec = self.rec_list[self.index_rec]
         # with np.load(rec) as data:
         with open(rec,'rb') as f:
-            # print(rec)
+            print(rec)
             data = dict(pickle.load(f))
             # print(data.keys())
             import json
@@ -233,7 +233,7 @@ class BatchGeneratorAMASSCanonicalized(object):
             # global_orient = data['global_orient'][::sample_rate]
             body_cmu_41 = data['marker_cmu_41'][::sample_rate]
             body_ssm2_67 = data['marker_ssm2_67'][::sample_rate]
-            # print(body_ssm2_67.shape)
+            print(body_ssm2_67.shape)
             framerate = data['mocap_framerate']
             joints = data['joints'][::sample_rate].reshape([-1,22,3])
             transf_rotmat = data['transf_rotmat']
@@ -250,7 +250,7 @@ class BatchGeneratorAMASSCanonicalized(object):
             body_feature = body_cmu_41.reshape([-1,41*3])
         elif self.body_repr == 'ssm2_67':
             body_feature = body_ssm2_67.reshape([-1,67*3])
-            # print("ssm2_67.shape:{}".format(body_feature.shape))
+            print("ssm2_67.shape:{}".format(body_feature.shape))
         elif self.body_repr == 'ssm2_67_marker2tarloc':
                     body_feature = np.concatenate([body_ssm2_67.reshape([-1,67*3]),
                                                    marker2tarloc_n.reshape([-1,67*3])],

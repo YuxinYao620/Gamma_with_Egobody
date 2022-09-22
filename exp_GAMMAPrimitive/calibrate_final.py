@@ -190,7 +190,8 @@ for record in tqdm(folder_seqs):
         global_ori_save = R.from_matrix(np.einsum('ij,tjk->tik', transf_rotmat.T, R.from_rotvec(global_ori_rotate).as_matrix())).as_rotvec()
         transl_save = np.einsum('ij,tj->ti', transf_rotmat.T, transl_rotate+delta_T-transf_transl)-delta_T
 
-        
+        print("transl_save:{}".format(transl_save))
+        print("global_ori_save:{}".format(global_ori_save))
         data_out['trans'] = transl_save
         data_out['body_pose'] = pose_seq
         data_out['betas'] = betas_seq

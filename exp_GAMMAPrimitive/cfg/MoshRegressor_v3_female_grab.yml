@@ -17,7 +17,7 @@ lossconfig:
 trainconfig:
   learning_rate: 0.0003
   batch_size: 16
-  num_epochs: 100
+  num_epochs: 300
   num_epochs_fix: 20
   saving_per_X_ep: 10
   body_model_path: /home/yuxinyao/body_models/

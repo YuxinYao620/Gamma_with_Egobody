@@ -43,7 +43,7 @@ if __name__ == '__main__':
     testcfg = {}
     testcfg['gpu_index'] = args.gpu_index
     testcfg['ckpt_dir'] = traincfg['save_dir']
-    testcfg['testdata'] = 'canicalized-camera-wearer'
+    # testcfg['testdata'] = 'canicalized-camera-wearer'
     # print('testcfg[\'testdata\']:', testcfg['testdata'])
     testcfg['result_dir'] = predictorcfg.cfg_result_dir if load_pretrained_model else cfgall.cfg_result_dir
     # print("testcfg.result_dir:{}".format(testcfg['result_dir']))

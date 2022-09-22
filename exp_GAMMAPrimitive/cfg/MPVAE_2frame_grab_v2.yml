@@ -20,7 +20,7 @@ lossconfig:
 trainconfig:
   learning_rate: 0.0005
   batch_size: 64
-  num_epochs: 300
+  num_epochs: 600
   num_epochs_fix: 60
   saving_per_X_ep: 30
   dataset_path: /home/yuxinyao/datasets/egobody/

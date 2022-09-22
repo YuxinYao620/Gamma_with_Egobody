@@ -140,6 +140,7 @@ def visualize(data, data_bparams, datagt=None, gender='male', betas=0,
     body_param_save = {}
     for k in bparam.keys():
         body_param_save[k] = bparam[k].detach().cpu().numpy().tolist()
+        print("{}:{}".format(k,body_param_save[k]))
     # import json
     # # print(os.getcwd())
     # with open('./body_param_visualize.txt','w') as f:
@@ -239,7 +240,7 @@ if __name__=='__main__':
     exps = [
             'exp_GAMMAPrimitive/MPVAE_1frame_v4',
             ]
-    n_seq_vis = 10
+    n_seq_vis = 3
     n_gen_vis = 3
 
     for show_body in [True]:
@@ -247,7 +248,7 @@ if __name__=='__main__':
         for exp in exps:
             # res_file_list = sorted(glob.glob(proj_path+'/results/exp_GAMMAPrimitive/MPVAE_1frame_v4/results/mp_gen_seed0/HumanEva/results_ssm2_67_female.pkl'))
             # res_file_list = sorted(glob.glob( '/home/yuxinyao/datasets/egobody/canicalized-camera-wearer/recording_20210929_S05_S16_01/subseq_02180.pkl'))
-            res_file_list = sorted(glob.glob( '/home/yuxinyao/datasets/egobody/canicalized-camera-wearer-grab-openpose-unchanged/recording_20220312_S28_S29_04/subseq_02622.pkl'))
+            res_file_list = sorted(glob.glob( '/home/yuxinyao/datasets/egobody/canicalized-camera-wearer-grab-openpose/recording_20210929_S05_S16_01/subseq_03916.pkl'))
             for results_file_name in res_file_list:
                 print('-- processing: '+results_file_name)
                 with open(results_file_name, 'rb') as f:

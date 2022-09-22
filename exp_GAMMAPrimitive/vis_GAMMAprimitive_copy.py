@@ -24,7 +24,7 @@ t = 10
 
 def visualize(data, data_bparams, datagt=None,joints= None, gender='male', betas=0,
                 outfile_path=None, datatype='gt',seq=0,gen=0,
-                show_body=True):
+                show_body=True,string='after',cur_world2pv_transform_t=None, trans_kinect2holo_t=None):
     ## prepare data
     n_frames = t
 
@@ -95,7 +95,8 @@ def visualize(data, data_bparams, datagt=None,joints= None, gender='male', betas
     ## parse smplx parameters
     bm = get_body_model('smplx', gender, n_frames, device='cpu')
     # print('betas.shape:{}'.format(betas.shape))
-    print("data_bprams.shape:{}".format(data_bparams.shape))
+    # print("data_bprams.shape:{}".format(data_bparams.shape))
+    print("address:{}".format(address))
     bparam = {}
     bparam['transl'] = data_bparams[:,:3]
     bparam['global_orient'] = data_bparams[:,3:6]
@@ -109,7 +110,7 @@ def visualize(data, data_bparams, datagt=None,joints= None, gender='male', betas
     ## obtain body mesh sequences
     for key in bparam:
         bparam[key] = torch.FloatTensor(bparam[key])
-        print('{}:{}'.format(key, bparam[key].shape))
+        # print('{}:{}'.format(key, bparam[key]))
     # tem_bm = bm(return_verts=True, **bparam).apply_transforms(trans_kinect2holo_t).apply_transforms(cur_world2pv_transform_t)
     verts_seq = bm(return_verts=True, **bparam).vertices.detach().cpu().numpy() #[t,verts, 3]
     jts = bm(return_verts=True, **bparam).joints[:,:22].detach().cpu().numpy() #[t,J, 3]
@@ -117,10 +118,10 @@ def visualize(data, data_bparams, datagt=None,joints= None, gender='male', betas
     frame_idx = 0
     cv2.namedWindow('frame2')
     for it in range(0,n_frames):
-        # for i,b in enumerate(ball_list):
-        #     # print("data.shape{}".format(data.shape))
-        #     b.translate(data[it,i], relative=False)
-        #     vis.update_geometry(b)
+        for i,b in enumerate(ball_list):
+            # print("data.shape{}".format(data.shape))
+            b.translate(data[it,i], relative=False)
+            vis.update_geometry(b)
 
 
         if it <motion_seed_len:
@@ -185,12 +186,11 @@ def visualize(data, data_bparams, datagt=None,joints= None, gender='male', betas
 
         ## capture RGB appearance
         rgb = np.asarray(vis.capture_screen_float_buffer(do_render=True))
-        # print("rgb.shape:{}".format(255*rgb.shape))
-        cv2.imshow("frame2", np.uint8(255*rgb[50:450,300:650,[2,1,0]]))
+        cv2.imshow("frame2", np.uint8(255*rgb[:,:,[2,1,0]]))
         if outfile_path is not None:
-            renderimgname = os.path.join(outfile_path, '1img_{:05d}.png'.format(frame_idx))
+            renderimgname = os.path.join(outfile_path, 'img_{:05d}_{}.png'.format(frame_idx,string))
             frame_idx = frame_idx + 1
-            cv2.imwrite(renderimgname, np.uint8(255*rgb[50:450,300:650,[2,1,0]]))
+            cv2.imwrite(renderimgname, np.uint8(255*rgb[:,:,[2,1,0]]))
         cv2.waitKey(5)
 
 def visualize2d(data, data_bparams, address, cur_fx,cur_fy,holo_cx,holo_cy, gender='male', betas=0,
@@ -211,13 +211,13 @@ def visualize2d(data, data_bparams, address, cur_fx,cur_fy,holo_cx,holo_cy, gend
     ## obtain body mesh sequences
     for key in bparam:
         bparam[key] = torch.FloatTensor(bparam[key])
-        print('{}:{}'.format(key, bparam[key].shape))
+        # print('{}:{}'.format(key, bparam[key]))
 
 
     verts_seq = body_model(return_verts=True, **bparam).vertices.detach().cpu().numpy() #[t,verts, 3]
     # output = body_model(return_verts=True, **torch_param)
     # vertices = output.vertices.detach().cpu().numpy().squeeze()
-    for i in range(t):
+    for i in range(0,t):
         address_t = address[i]
         cur_fx_t = cur_fx[i]
         cur_fy_t = cur_fy[i]
@@ -225,6 +225,11 @@ def visualize2d(data, data_bparams, address, cur_fx,cur_fy,holo_cx,holo_cy, gend
         holo_cy_t = holo_cy[i]
         body = trimesh.Trimesh(verts_seq[i,:,:], body_model.faces, process=False)
 
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111, projection='3d')
+        # ax.plot_trisurf(body.vertices[:, 0], body.vertices[:,1], triangles=body.faces, Z=body.vertices[:,2]) 
+        # plt.show()
+        # print("address_t:{}".format(address_t))
         camera_center = np.array([holo_cx_t, holo_cy_t])
         camera_pose = np.eye(4)
         camera_pose = np.array([1.0, 1.0, 1.0, 1.0]).reshape(-1, 1) * camera_pose
@@ -257,13 +262,58 @@ def visualize2d(data, data_bparams, address, cur_fx,cur_fy,holo_cx,holo_cy, gend
         alpha = 1.0  # set transparency in [0.0, 1.0]
         color[:, :, -1] = color[:, :, -1] * alpha
         color = pil_img.fromarray((color * 255).astype(np.uint8))
-        output_img = pil_img.fromarray((img).astype(np.uint8))
+        # output_img = pil_img.fromarray((img[50:450,300:650]).astype(np.uint8))
+        output_img = pil_img.fromarray(img.astype(np.uint8))
         output_img.paste(color, (0, 0), color)
         output_img.convert('RGB')
         # output_img = output_img.resize((int(W / 2), int(H / 2)))
         # print(output_img.size)
-        output_img.save(os.path.join(outputfolder, 'holo_' + str(i) + '_output.jpg'))
+        print("output_img:{}".format(os.path.join(outfile_path, 'holo_' + str(i) + '_output.jpg')))
+        output_img.save(os.path.join(outfile_path, 'holo_' + str(i) + '_output.jpg'))
     return 0
+
+def vis_2d_original(data, data_bparams, address, cur_fx,cur_fy,holo_cx,holo_cy, gender='female', betas=0,
+                outfile_path=None, datatype='gt',seq=0,gen=0,string = 'after',trans_kinect2holo_t = None,cur_world2pv_transform_t= None):
+    bparams = np.zeros((10,93))
+    for i in range(0,10):
+        ith_address = address[i]
+        recording = ith_address.split('/')[6]
+        frame = ith_address.split('_')[-1][:-4]
+
+        body_model_address = glob.glob("/home/yuxinyao/datasets/egobody/smplx_interactee/{}/*/results/frame_{}/000.pkl".format(recording,frame))[0]
+        # print("body_model_address:"+body_model_address)
+        if os.path.exists(body_model_address):
+            with open(body_model_address,'rb') as f:
+                bm = pickle.load(f)
+            ith_bp = {}
+            for key in bm.keys():
+                if key in ['pose_embedding', 'camera_rotation', 'camera_translation', 'gender']:
+                    continue
+                else:
+                    # ith_bp[key] = torch.tensor(bm[key]).to('cpu')
+                    bparams[i,:3] = torch.tensor(bm['transl'])
+                    bparams[i,3:6] = torch.tensor(bm['global_orient'])
+                    bparams[i,6:69] = torch.tensor(bm['body_pose'])
+                    bparams[i,69:81] = torch.tensor(bm['left_hand_pose'])
+                    bparams[i,81:93] = torch.tensor(bm['right_hand_pose'])
+                # print("{}:{} ".format(key,bm[key]))
+
+        else:
+            bparams[i,:] = data_bparams[i-1,:]
+
+        
+    # print("address:{}".format(address))
+    # print("holo_x:{}".format(holo_cx))
+    # print("holo_y:{}".format(holo_cy))
+    # print("cur_fx:{}".format(cur_fx))
+    # print("cur_fy:{}".format(cur_fy))
+    # print("trans_kinect2hol_t:{}\n t:{}".format(trans_kinect2holo_t,seq))
+    # print("cur_world2pv_transform_t:{}".format(cur_world2pv_transform_t))
+
+    visualize2d(data, bparams, address, cur_fx,cur_fy,holo_cx,holo_cy, gender='female', betas=betas,
+                outfile_path=outputfolder+"_original", datatype='gt',seq=seq,gen=gen,
+                string = 'after',trans_kinect2holo_t = trans_kinect2holo_t,
+                cur_world2pv_transform_t= cur_world2pv_transform_t)
 
 
 
@@ -277,10 +327,10 @@ if __name__=='__main__':
     for show_body in [True]:
         out_suffix='body' if show_body else 'kps'
         for exp in exps:
-            res_file_list = sorted(glob.glob(proj_path+'/results/exp_GAMMAPrimitive/MPVAE_2frame_grab_v4/results/mp_gen_seed0/canicalized-camera-wearer-grab/results_ssm2_67_grab_female.pkl'))
-            # res_file_list = sorted(glob.glob(proj_path+'/results/exp_GAMMAPrimitive/MPVAE_2frame_v4/results/mp_gen_seed0/canicalized-camera-wearer/results_ssm2_67_female.pkl'))
+            # res_file_list = sorted(glob.glob(proj_path+'/results/exp_GAMMAPrimitive/MPVAE_2frame_grab_v4/results/mp_gen_seed0/canicalized-camera-wearer-grab/results_ssm2_67_grab_female.pkl'))
+            res_file_list = sorted(glob.glob(proj_path+'/results/exp_GAMMAPrimitive/MPVAE_2frame_grab_v4/results/mp_gen_seed0/canicalized-camera-wearer-grab-openpose/1results_ssm2_67_grab_female.pkl'))
             # res_file_list = sorted(glob.glob(proj_path+"/results/exp_GAMMAPrimitive/MPVAE_2frame_grab_v4/results/mp_gen_seed0/canicalized-camera-wearer-grab-openpose/1results_ssm2_67_grab_female.pkl"))
-            # res_file_list = sorted(glob.glob( '/home/yuxinyao/datasets/egobody/canicalized-camera-wearer/recording_20210911_S07_S06_01/*.pkl'))
+            # res_file_list = sorted(glob.glob( '/home/yuxinyao/datasets/egobody/canicalized-camera-wearer-grab-openpose/recording_20210929_S05_S16_01/subseq_03916.pkl'))
             # res_file_list = sorted(glob.glob( '/home/yuxinyao/datasets/egobody/canicalized-camera-wearer-Face-x1/recording_20210910_S06_S05_01/*.pkl'))
             for results_file_name in res_file_list:
                 # print("1")
@@ -289,10 +339,12 @@ if __name__=='__main__':
                     data = pickle.load(f)
                 # dd = data['marker_ssm2_67']
                 dd = data['markers']
+                dd_before = data['markers_before']
                 print("marker: {}".format(dd.shape))
                 ddgt = data['gt']
                 # print("ddgt.shape: {}".format(ddgt.shape))
                 dd_bparam = data['smplx_params']
+                dd_bparam_before = data['smplx_params_before']
                 
                 # dd_bparam = data['bparams_seed']
                 n_seq=dd.shape[0]
@@ -301,28 +353,66 @@ if __name__=='__main__':
                 # joints = data['batch_joint']
                 # print("joints.shape: {}".format(joints.shape))
 
-                for seq in range(n_seq_vis):
+                trans_kinect2holo = data['trans_kinect2holo']
+                cur_world2pv_transform = data['cur_world2pv_transform']
+                address = data['address']
+                cur_fx=(data['cur_fx'])
+                cur_fy=(data['cur_fy'])
+                holo_cx=(data['holo_cx'])
+                holo_cy=(data['holo_cy'])
+                # print(len(address[0]))
+                st = 'before'
+
+                if st=='before':
+                    dd = dd_before
+                    dd_bparam = dd_bparam_before
+                else:
+                    pass
+                for seq in range(n_seq):#n_seq
                     gender = data['gender'][seq]
                     betas = data['betas'][seq][0]
 
-                    for gen in range(n_gen_vis):
+                    transf_rotmat =data['transf_rotmat'][seq]
+                    transf_transl =data['transf_transl'][seq]
+                    delta_T=data['delta_T'][seq]
+                    transf_rotate_xaxis=data['transf_rotate_xaxis'][seq]
+                    transf_transl_xaxis=data['transf_transl_xaxis'][seq]
+                    delta_T_rotate=data['delta_T_rotate'][seq]
+                    for gen in range(n_gen):#n_gen
 
-                        renderfolder = results_file_name+'_render{}_ppt_grab_noMarker'.format(out_suffix)+'/seq{}_gen{}'.format(seq, gen)
-                        outputfolder = results_file_name+'_render{}_image'.format(out_suffix)+'/seq{}_gen{}'.format(seq, gen)
+                        renderfolder = results_file_name+'justTest_render{}_ppt'.format(out_suffix)+'/seq{}_gen{}_{}'.format(seq, gen,st)
+                        outputfolder = results_file_name+'justTest_render{}_image_ppt'.format(out_suffix)+'/seq{}_gen{}_{}'.format(seq, gen,st)
 
+                        print(renderfolder)
                         if not os.path.exists(renderfolder):
                             os.makedirs(renderfolder)
-                        visualize(dd[seq,gen],
-                                dd_bparam[seq,gen],
-                                # datagt=ddgt[seq,0], # change this one to none will not visualize the targer marker.
-                                # datagt = None,
-                                # joints = joints[seq,gen],
-                                gender=gender,
-                                betas=betas,
-                                outfile_path=renderfolder, datatype='kps',
-                                seq=seq,gen=gen,
-                                show_body=True)
-                        print(renderfolder)
+                        if not os.path.exists(outputfolder):
+                            os.makedirs(outputfolder)
+                        # if not os.path.exists(outputfolder+'_original'):
+                        #     os.makedirs(outputfolder+'_original')
+                        if not os.path.exists(renderfolder+'_2d'):
+                            os.makedirs(renderfolder+'_2d')
+                        # visualize(dd[seq,gen],
+                        #         dd_bparam[seq,gen],
+                        #         # datagt=ddgt[seq,0], # change this one to none will not visualize the targer marker.
+                        #         # datagt = None,
+                        #         # joints = joints[seq,gen],
+                        #         gender=gender,
+                        #         betas=betas,
+                        #         outfile_path=renderfolder, datatype='kps',
+                        #         seq=seq,gen=gen,
+                        #         show_body=True,
+                        #         string=st,cur_world2pv_transform_t=cur_world2pv_transform[seq], trans_kinect2holo_t=trans_kinect2holo[seq])
+                        # print("address seq:{} :{}".format(seq, address[seq]))
+                        # vis_2d_original(dd[seq,gen],
+                        #         dd_bparam[seq,gen],
+                        #         address= address[seq], cur_fx = cur_fx[seq],cur_fy = cur_fy[seq],holo_cx = holo_cx[seq],holo_cy = holo_cy[seq],
+                        #         gender=gender,
+                        #         betas=betas,
+                        #         outfile_path=renderfolder+'_2d', datatype='kps',
+                        #         seq=seq,gen=gen,
+                        #         string=st, cur_world2pv_transform_t=cur_world2pv_transform[seq], trans_kinect2holo_t=trans_kinect2holo[seq])
+                        # print(address)
                         visualize2d(dd[seq,gen],
                                 dd_bparam[seq,gen],
                                 address= address[seq], cur_fx = cur_fx[seq],cur_fy = cur_fy[seq],holo_cx = holo_cx[seq],holo_cy = holo_cy[seq],
@@ -331,5 +421,4 @@ if __name__=='__main__':
                                 outfile_path=renderfolder+'_2d', datatype='kps',
                                 seq=seq,gen=gen,
                                 string=st, cur_world2pv_transform_t=cur_world2pv_transform[seq], trans_kinect2holo_t=trans_kinect2holo[seq]
-
                         )

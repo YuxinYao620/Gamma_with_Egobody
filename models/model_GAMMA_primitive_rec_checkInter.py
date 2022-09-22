@@ -601,7 +601,7 @@ class GAMMAPrimitiveComboRecOP(TestOP):
         l = (z_rec**2).mean()
         l.backward()
         optimizer = torch.optim.Adam([z_rec], lr=0.1)
-        scheduler = MultiStepLR(optimizer, milestones=[100,200], gamma=0.5)
+        # scheduler = MultiStepLR(optimizer, milestones=[100,200,300], gamma=0.5)
         Y_pred, Yb_pred = 0,0
         Y_pred_intial, Yb_pred_intial = 0,0
         torch.backends.cudnn.enabled=False
@@ -632,9 +632,9 @@ class GAMMAPrimitiveComboRecOP(TestOP):
             optimizer.step()
             lr_o = optimizer.param_groups[0]['lr']
             print("{}th iter, loss:{},time:{},lr:{}".format(iteration,loss_2dkp.item(),time.time()-stime,lr_o))
-            scheduler.step()
+            # scheduler.step()
 
-            if iteration==50 or iteration == 100 or iteration ==200:
+            if iteration==50 or iteration == 100 or iteration ==200 or iteration ==300:
                 z_middle.append(z_rec)
             # break
 
@@ -643,6 +643,7 @@ class GAMMAPrimitiveComboRecOP(TestOP):
         Y_pred_100, Yb_pred_100 = self.model.sample_prior(X, betas=betas, z=z_middle[1])
         # plot()
         Y_pred_200, Yb_pred_200 = self.model.sample_prior(X, betas=betas, z=z_middle[2])
+        Y_pred_300, Yb_pred_300 = self.model.sample_prior(X, betas=betas, z=z_middle[3])
 
         # print("Y_pred.shape:{}".format(Y_pred.shape))
         Y = torch.cat((X[:,:,:147*3], Y_pred), dim=0)
@@ -654,6 +655,7 @@ class GAMMAPrimitiveComboRecOP(TestOP):
         Y_50, Yb_50 = self.formatAfterRecover(Y_pred_50, Yb_pred_50, X,Xb,param_blending)
         Y_100,Yb_100 = self.formatAfterRecover(Y_pred_100, Yb_pred_100, X,Xb,param_blending)
         Y_200, Yb_200 = self.formatAfterRecover(Y_pred_200, Yb_pred_200, X,Xb,param_blending)
+        Y_300, Yb_300 = self.formatAfterRecover(Y_pred_300, Yb_pred_300, X,Xb,param_blending)
         if param_blending:
             Yb = self._blend_params(Yb)
             Y_pred_intial = self._blend_params(Y_pred_intial)
@@ -669,7 +671,7 @@ class GAMMAPrimitiveComboRecOP(TestOP):
         Yb = Yb.detach().cpu().numpy()
         Yb_pred_intial = Yb_pred_intial.detach().cpu().numpy()
         # z = z_rec.detach().cpu().numpy()
-        return Y, Yb,Y_pred_intial, Yb_pred_intial
+        return Y, Yb,Y_pred_intial, Yb_pred_intial,Y_50,Yb_50,Y_100,Yb_100,Y_200,Yb_200,Y_300, Yb_300
 
 
 
@@ -720,6 +722,14 @@ class GAMMAPrimitiveComboRecOP(TestOP):
         gen_results['smplx_params'] = []
         gen_results['markers_before'] = []
         gen_results['smplx_params_before'] = []
+        gen_results['Y_50'] = []
+        gen_results['Yb_50'] = []
+        gen_results['Y_100'] = []
+        gen_results['Yb_100'] = []
+        gen_results['Y_200'] = []
+        gen_results['Yb_200'] = []
+        gen_results['Y_300'] = []
+        gen_results['Yb_300'] = []
         gen_results['transl'] = []
         gen_results['bparams_seed'] = []
         gen_results['kp'] = []
@@ -794,7 +804,7 @@ class GAMMAPrimitiveComboRecOP(TestOP):
             transf_rotate_xaxis=data['transf_rotate_xaxis']
             transf_transl_xaxis=data['transf_transl_xaxis']
             delta_T_rotate=data['delta_T_rotate']
-            pred_markers, pred_body_params,pred_marker_before,pred_body_params_before= self.recover(motion, bparams, betas=data['betas'][0,:],
+            pred_markers, pred_body_params,pred_marker_before,pred_body_params_before,Y_50,Yb_50,Y_100,Yb_100,Y_200,Yb_200,Y_300,Yb_300= self.recover(motion, bparams, betas=data['betas'][0,:],
                                                         n_gens=n_gens, t_his=t_his, cur_world2pv_transform = data['cur_world2pv_transform'],
                                                         # camera_holo_kp = data['camera_holo_kp'],
                                                         cur_fx = data['cur_fx'],
@@ -816,6 +826,14 @@ class GAMMAPrimitiveComboRecOP(TestOP):
             gen_results['smplx_params'].append(pred_body_params)
             gen_results['markers_before'].append(pred_marker_before)
             gen_results['smplx_params_before'].append(pred_body_params_before)
+            gen_results['Y_50'].append(Y_50)
+            gen_results['Yb_50'].append(Yb_50)
+            gen_results['Y_100'].append(Y_100)
+            gen_results['Yb_100'].append(Yb_100)
+            gen_results['Y_200'].append(Y_200)
+            gen_results['Yb_200'].append(Yb_200)
+            gen_results['Y_300'].append(Y_300)
+            gen_results['Yb_300'].append(Yb_300)
             gen_results['address'].append(data['address'])
             idx+=1
         gen_results['gt'] = np.stack(gen_results['gt'])
@@ -824,6 +842,14 @@ class GAMMAPrimitiveComboRecOP(TestOP):
         gen_results['smplx_params'] = np.stack(gen_results['smplx_params'])
         gen_results['markers_before'] = np.stack(gen_results['markers_before']) #[#seq, #genseq_per_pastmotion, t, #joints, 3]
         gen_results['smplx_params_before'] = np.stack(gen_results['smplx_params_before'])
+        gen_results['Y_50'] = np.stack(gen_results['Y_50'])
+        gen_results['Yb_50'] = np.stack(gen_results['Yb_50'])
+        gen_results['Y_100'] = np.stack(gen_results['Y_100'])
+        gen_results['Yb_100'] = np.stack(gen_results['Yb_100'])
+        gen_results['Y_200'] = np.stack(gen_results['Y_200'])
+        gen_results['Yb_200'] = np.stack(gen_results['Yb_200'])
+        gen_results['Y_300'] = np.stack(gen_results['Y_300'])
+        gen_results['Yb_300'] = np.stack(gen_results['Yb_300'])
         # print('smplx_params.shape:{}'.format(gen_results['smplx_params'].shape))
         gen_results['transl'] = np.stack(gen_results['transl'])
         # gen_results['address'] = np.stack(gen_results['address'])

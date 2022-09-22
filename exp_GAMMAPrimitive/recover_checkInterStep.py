@@ -1,6 +1,3 @@
-'''
-this script is to evaluate stochastic motion prediction on amass
-'''
 import numpy as np
 import argparse
 import os
@@ -12,11 +9,10 @@ import torch
 sys.path.append(os.getcwd())
 from utils import *
 from exp_GAMMAPrimitive.utils.config_creator import ConfigCreator
-from exp_GAMMAPrimitive.utils.batch_gen_amass import BatchGeneratorAMASSCanonicalized
-from models.models_GAMMA_primitive import GAMMAPrimitiveComboGenOP as GenOP
+from exp_GAMMAPrimitive.utils.batch_gen_openpose import BatchGeneratorOpenposeCanonicalized
+from models.model_GAMMA_primitive_rec_checkInter import GAMMAPrimitiveComboRecOP as RecOP
 # from models.models_GAMMA_longer_primitive import GAMMAPrimitiveComboGenOP as GenOP
 import pdb
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -47,7 +43,7 @@ if __name__ == '__main__':
     testcfg = {}
     testcfg['gpu_index'] = args.gpu_index
     testcfg['ckpt_dir'] = traincfg['save_dir']
-    testcfg['testdata'] = 'canicalized-camera-wearer'
+    # testcfg['testdata'] = 'canicalized-camera-wearer'
     # print('testcfg[\'testdata\']:', testcfg['testdata'])
     testcfg['result_dir'] = predictorcfg.cfg_result_dir if load_pretrained_model else cfgall.cfg_result_dir
     # print("testcfg.result_dir:{}".format(testcfg['result_dir']))
@@ -66,31 +62,20 @@ if __name__ == '__main__':
     from exp_GAMMAPrimitive.utils import config_env
     amass_path = config_env.get_amass_canonicalized_path()
     # print("amass_path:{}".format(amass_path))
-    batch_gen = BatchGeneratorAMASSCanonicalized(amass_data_path=amass_path,
+    batch_gen = BatchGeneratorOpenposeCanonicalized(amass_data_path=amass_path,
                                                  amass_subset_name=testing_data,
                                                  sample_rate=1,
                                                  body_repr=predictorcfg.modelconfig['body_repr'],
                                                  read_to_ram=False)
-    # try:
-    #     rec_list_file = 'exp_GAMMAPrimitive/data/exp-motiongen/motionseed_{}.pkl'.format(args.testdata)
-    #     # print(rec_list_file)
-    #     rec_list = np.load(rec_list_file, allow_pickle=True)
-    #     batch_gen.rec_list = [filepath.replace('/home/yzhang/Videos/AMASS-Canonicalized-MP/data/HumanEva/subseq_',
-    #                     amass_path) for filepath in rec_list]
-    #     # print("amass_path:"+ amass_path)
-    #     # print("filepath:"+ batch_gen.rec_list[0])
-    #     print([filepath.replace('/home/yzhang/Videos/AMASS-Canonicalized-MP/data/HumanEva',amass_path) for filepath in rec_list][0])
-    #     batch_gen.index_rec = 0
-    #     print('[INFO] load rec_list from {}'.format(rec_list_file))
-    # except:
+
     batch_gen.get_rec_list(shuffle_seed=args.seed)
     print('[INFO] load rec_list from dataset. This is not recommended for comparison')
-
+    
     """models"""
-    testop = GenOP(predictorcfg, regressorcfg, testcfg)
+    testop = RecOP(predictorcfg, regressorcfg, testcfg)
     testop.build_model(load_pretrained_model=load_pretrained_model)
 
-    """eval"""
-    print("n_gens = {}".format(testcfg['batch_size']))
-    testop.generate_primitive_to_files(batch_gen,
+    import pdb
+    """similarity pair"""
+    testop.recover_primitive_to_files(batch_gen,
                     n_seqs=N_SEQ, n_gens=testcfg['batch_size'],t_his=t_his)

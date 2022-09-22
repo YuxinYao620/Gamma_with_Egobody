@@ -32,7 +32,7 @@ def get_amass_canonicalized_path():
         mkpath = '/vlg-data/AMASS-Canonicalized-MP/data'
     elif 'emerald' in hostname:
         mkpath = '/mnt/hdd/datasets/AMASS_SMPLH_G-canon/data'
-    elif 'vlg-desktop' in hostname:
+    elif 'yuxinyao' in hostname:
         # mkpath = '/home/yuxinyao/datasets/egobody/canicalized-camera-wearer'
         mkpath = '/home/yuxinyao/datasets/egobody/'
     else:
@@ -44,7 +44,7 @@ def get_amass_canonicalizedx10_path():
         mkpath = '/vlg-data/AMASS-Canonicalized-MPx10/data'
     elif 'emerald' in hostname:
         mkpath = '/home/yzhang/Videos/AMASS-Canonicalized-MPx10/data'
-    elif 'vlg-desktop' in hostname:
+    elif 'yuxinyao' in hostname:
         # mkpath = '/home/yuxinyao/datasets/egobody/canicalized-camera-wearer_x3'
         mkpath = '/home/yuxinyao/datasets/egobody/'
     else:
