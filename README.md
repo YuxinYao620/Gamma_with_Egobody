@@ -65,6 +65,7 @@ This repo contains the official implementation of paper:
 ### Models
 * [**SSM2 67** marker placement](https://drive.google.com/file/d/1ozQuVjXoDLiZ3YGV-7RpauJlunPfcx_d/view?usp=sharing)
 * [**Pre-trained Checkpoints And cfgs**](https://drive.google.com/drive/folders/15IVBvXWmSvRlsspgomtLiwqj3iOZClSX?usp=sharing): put the checkpoints folders into `results/exp_GAMMAPrimitive/`. 
+
 ### Visualizating Motion in Blender
 * Blender 2.93 or above.
 * Install the [SMPL-X add-on](https://www.youtube.com/watch?v=DY2k29Jef94)
@@ -74,13 +75,27 @@ This repo contains the official implementation of paper:
 ### Every training and test step without 2D reconsturction on PV image, refers to GAMMA: https://github.com/yz-cnsdqz/GAMMA-release
 
 ### Reconstruct 2D image with body model on it:
+* The best-fit latent variable is found by decreasing the mse loss between the ground truth openpose joints position and the corresponding joints on the predicted body model after projection to same camera plane.
 ```
 python exp_GAMMAPrimitive/recover.py --cfg MPVAECombo_1frame_female_v10_grab_openpose
 ```
 ### Visualize the result:
 * run exp_GAMMAPrimitive/vis_GAMMAprimitive.py, the 3D predicted motion and the 2D image with reconsturcted body model will be produced. The output path is printed out. 
 
+#Result example:
 
+### Comparison:
+* Before the best-fit latent variable selected: 
+
+
+
+https://user-images.githubusercontent.com/38854438/193247541-ea2b2da8-de23-4cbd-9430-e4bb1dbf968b.mp4
+
+* With the best-fit latent variable:
+
+
+
+https://user-images.githubusercontent.com/38854438/193247592-2ae46a0e-83c3-4fa4-97e0-4c402b6df898.mp4
 
 
 
