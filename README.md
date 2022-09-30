@@ -1,10 +1,10 @@
-# GAMMA: The Wanderings of Odysseus in 3D Scenes
+# Gamma with Egobody
 
 <p align="center">
   <img width="900" height="auto" src="demo.gif">
 </p>
 
-This repo contains the official implementation of our paper. If you find our work useful in your research, please consider citing it:
+This repo contains the official implementation of paper:
 
 ```
 @inproceedings{zhang2022wanderings,
@@ -15,8 +15,15 @@ This repo contains the official implementation of our paper. If you find our wor
   year={2022}
 }
 ```
-
-[[website](https://yz-cnsdqz.github.io/eigenmotion/GAMMA/)] [[paper](https://arxiv.org/abs/2112.09251)] [[talk](https://www.youtube.com/watch?v=HpcQBEwF4wk&t=2s)]
+```
+@inproceedings{Zhang:ECCV:2022,
+   title = {EgoBody: Human Body Shape and Motion of Interacting People from Head-Mounted Devices},
+   author = {Zhang, Siwei and Ma, Qianli and Zhang, Yan and Qian, Zhiyin and Kwon, Taein and Pollefeys, Marc and Bogo, Federica and Tang, Siyu},
+   booktitle = {European conference on computer vision (ECCV)},
+   month = oct,
+   year = {2022}
+}
+```
 
 
 # License
@@ -42,6 +49,7 @@ This repo contains the official implementation of our paper. If you find our wor
     * [smplx](https://smpl-x.is.tue.mpg.de)
     * [vposer](https://github.com/nghorbani/human_body_prior): checkpoint version 1.0
 
+
 ### Datasets
 * [**EgoBody**](https://amass.is.tue.mpg.de): We trained the motion prior by using the body model of camera-wearer in EgoBody dataset, and tested the motion prior with the body model of the interactee in EgoBody. 
 
@@ -50,96 +58,29 @@ This repo contains the official implementation of our paper. If you find our wor
 
 ### Canonicalization
 * required for training and visualizing motion primitives.
-* `exp_GAMMAPrimitive/optimize_latent_var.py` to performs canonicalization for test data: the interactee.
-* 
-* run `python exp_GAMMAPrimitive/utils/utils_canonicalize_amass.py [num_motion_primitives]`. 
-* `num_motion_primitives` is the number of primitives in each sub-sequence. We set to 1 and 10, respectively. So we prepare **two** processed datasets.
+* `exp_GAMMAPrimitive/optimize_latent_var.py` to performs canonicalization for test data: the interactee. 
+* `N_MPS` is the number of primitives in each sub-sequence. We set to 1 and 3, respectively. So we prepare **two** processed datasets with 10 or 30 frame per sequence.
+* If you want to add any other markers in GRAB Marker set, edit the argument when calling get_grab_marker(). 
 
 ### Models
-* [**CMU 41** marker placement](https://drive.google.com/file/d/1CcNBZCXA7_Naa0SGlYKCxk_ecnzftbSj/view?usp=sharing)
 * [**SSM2 67** marker placement](https://drive.google.com/file/d/1ozQuVjXoDLiZ3YGV-7RpauJlunPfcx_d/view?usp=sharing)
-* [**Pre-trained Checkpoints**](https://drive.google.com/drive/folders/1jODy-rssGq8WN1qCSOrOxvTw2wYNskPD?usp=sharing): put these folders into `results/exp_GAMMAPrimitive/`.
-
+* [**Pre-trained Checkpoints And cfgs**](https://drive.google.com/drive/folders/15IVBvXWmSvRlsspgomtLiwqj3iOZClSX?usp=sharing): put the checkpoints folders into `results/exp_GAMMAPrimitive/`. 
 ### Visualizating Motion in Blender
 * Blender 2.93 or above.
 * Install the [SMPL-X add-on](https://www.youtube.com/watch?v=DY2k29Jef94)
 
-# Motion Generation
+# Motion generation and reconsturction
 
-### Generating and Visualizing Long-term Motions
-* Select a pre-trained model policy, e.g. `MPVAEPolicy_v0`.
-* Run the following scripts, and save the results to e.g. `results/tmp123/GAMMAVAEComboPolicy_PPO/MPVAEPolicy_v0`:
-```
-## a faster version with less control in tree search
-python exp_GAMMAPrimitive/gen_motion_long_in_Cubes_parallel.py --cfg MPVAEPolicy_v0
+### Every training and test step without 2D reconsturction on PV image, refers to GAMMA: https://github.com/yz-cnsdqz/GAMMA-release
 
-## or, a slower version with more control in the tree search
-python exp_GAMMAPrimitive/gen_motion_long_in_Cubes.py --cfg MPVAEPolicy_v0
+### Reconstruct 2D image with body model on it:
 ```
-* **Visualization in Blender**
-    * Open Blender, and open `exp_GAMMAPrimitive/data/Cubes/synthetic_scene_000.blend`.
-    * (optional) import the navigation mesh `scene_cubes_000_navimesh.obj`.
-    * Change the path in the python script, and click RUN.
+python exp_GAMMAPrimitive/recover.py --cfg MPVAECombo_1frame_female_v10_grab_openpose
+```
+### Visualize the result:
+* run exp_GAMMAPrimitive/vis_GAMMAprimitive.py, the 3D predicted motion and the 2D image with reconsturcted body model will be produced. The output path is printed out. 
 
 
-### Generating and Visualizing Motion Primitives
-* To generate motion primitives, it needs canonicalized AMASS sequences as motion seeds.
-* Run e.g.
-```
-python exp_GAMMAPrimitive/gen_GAMMAprimitive.py --cfg MPVAECombo_1frame_female_v10
-```
-* Set the path in `exp_GAMMAPrimitive/vis_GAMMAprimitive.py`, and run
-```
-python exp_GAMMAPrimitive/vis_GAMMAprimitive.py
-```
-* The results will save into the same folder.
-
-
-
-# Train
-Given a model configuration `cfg`, the checkpoints will be automatically saved into `results/exp_GAMMAPrimitive/cfg/*`.
-
-### Train Body Regressors
-* Two kinds of body regressors for female and male, respectively. Here we only show one example.
-* Set the model configurations like in `exp_GAMMAPrimitive/cfg/MoshRegressor_v3_female.yml`.
-* To train the model, run 
-```
-python exp_GAMMAPrimitive/train_GammaRegressor.py --cfg MoshRegressor_v3_female
-```
-* Since the SMPL-X model is used for the inverse kinematics loss, training the body regressor is much slower than training the marker predictors.
-
-
-### Train Marker Predictors
-* first train marker predictors from scratch with individual motion primitives, and then fine-tune it with longer sub-sequences.
-* Set the model configurations like in `exp_GAMMAPrimitive/cfg/MPVAE_*frame_*.yml`.
-* To train the model scratch, run
-```
-python exp_GAMMAPrimitive/train_GammaPredictor.py --cfg MPVAE_*frame_v2
-```
-* To fine-tune the model with rollout, run 
-```
-python exp_GAMMAPrimitive/train_GammaPredictor.py --cfg MPVAE_*frame_v4 --resume_training 1
-```
-* If the checkpoint is not found, copy the pre-trained checkpoint and rename it to `epoch-000.ckp`.
-
-
-### Train their Combo (optional)
-* We did not observe benefits to train them jointly. But we still leave the code for users to explore. 
-Depending on the motion seed and the gender, there should be 4 combos, here we just show one of them as example.
-* Set the model configurations like in `exp_GAMMAPrimitive/cfg/MPVAECombo_1frame_female_v10.yml`.
-* Run `python exp_GAMMAPrimitive/train_GammaCombo.py --cfg MPVAECombo_1frame_female_v10`.
-
-### Train Motion Policy
-* The motion policy is trained in a separate setting. 
-* Set the model configurations like in `exp_GAMMAPrimitive/cfg/MPVAEPolicy_v0.yml`.
-* To train the policy, run
-```
-python exp_GAMMAPrimitive/train_GammaPolicy.py --cfg MPVAEPolicy_v0
-```
-
-# Acknowledgement
-We appreciate [Gramazio Kohler Research](https://gramaziokohler.arch.ethz.ch) to provide architecture CAD models for experiments. Visualizations of body motions are largely based on the SMPL-X blender add-on.
-We appreciate [Jonathan Lehner](https://github.com/JonathanLehner) to develop visualizations in Nvidia Omniverse.
 
 
 
