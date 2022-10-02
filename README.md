@@ -77,7 +77,7 @@ This repo contains the official implementation of paper:
 ### Reconstruct 2D image with body model on it:
 * The best-fit latent variable is found by decreasing the mse loss between the ground truth openpose joints position and the corresponding joints on the predicted body model after projection to same camera plane.
 ```
-python exp_GAMMAPrimitive/recover.py --cfg MPVAECombo_1frame_female_v10_grab_openpose
+python exp_GAMMAPrimitive/recover.py --cfg MPVAECombo_2frame_female_v10_grab_openpose
 ```
 ### Visualize the result:
 * run exp_GAMMAPrimitive/vis_GAMMAprimitive.py, the 3D predicted motion and the 2D image with reconsturcted body model will be produced. The output path is printed out. 
@@ -89,13 +89,27 @@ python exp_GAMMAPrimitive/recover.py --cfg MPVAECombo_1frame_female_v10_grab_ope
 
 
 
-https://user-images.githubusercontent.com/38854438/193247541-ea2b2da8-de23-4cbd-9430-e4bb1dbf968b.mp4
+
+
+
+
+https://user-images.githubusercontent.com/38854438/193464285-5c24f942-08c2-480e-9027-e327afbadc23.mov
+
+
+
+
 
 * With the best-fit latent variable:
 
 
 
-https://user-images.githubusercontent.com/38854438/193247592-2ae46a0e-83c3-4fa4-97e0-4c402b6df898.mp4
+
+
+https://user-images.githubusercontent.com/38854438/193464186-42ba9bdb-8e6d-4aed-ab9e-22c73f413475.mov
+
+
+
+
 
 
 
