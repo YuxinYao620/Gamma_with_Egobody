@@ -81,7 +81,7 @@ python exp_GAMMAPrimitive/recover.py --cfg MPVAECombo_2frame_female_v10_grab_ope
 ```
 ### Visualize the result:
 * run exp_GAMMAPrimitive/vis_GAMMAprimitive.py, the 3D predicted motion and the 2D image with reconsturcted body model will be produced. The output path is printed out. 
-
+* run python exp_GAMMAPrimitive/visualize_to_video.py to turn image outputs of vis_GAMMAprimitive.py to mp4 video.
 # Result example:
 
 ### Comparison:
