@@ -29,7 +29,7 @@ This repo contains the official implementation of paper:
 # License
 * Third-party software employs their respective license. Here are some examples:
     * Code/model/data relevant to the SMPL-X body model follows its own license.
-    * Code/model/data relevant to the AMASS dataset follows its own license.
+    * Code/model/data relevant to the EgoBody dataset follows its own license.
     * Blender and its SMPL-X add-on employ their respective license.
 
 * The rests employ the **Apache 2.0 license**. When using the code, please cite our work as above.
@@ -65,6 +65,7 @@ This repo contains the official implementation of paper:
 ### Models
 * [**SSM2 67** marker placement](https://drive.google.com/file/d/1ozQuVjXoDLiZ3YGV-7RpauJlunPfcx_d/view?usp=sharing)
 * [**Pre-trained Checkpoints And cfgs**](https://drive.google.com/drive/folders/15IVBvXWmSvRlsspgomtLiwqj3iOZClSX?usp=sharing): put the checkpoints folders into `results/exp_GAMMAPrimitive/`. 
+* [**GRAB** markerset](https://github.com/otaheri/GrabNet)
 
 ### Visualizating Motion in Blender
 * Blender 2.93 or above.
